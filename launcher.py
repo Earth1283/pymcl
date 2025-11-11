@@ -967,7 +967,6 @@ class MainWindow(QMainWindow):
             
         self.version_combo.setEnabled(True)
 
-    # --- CACHE METHODS ---
     def load_versions_from_cache(self):
         if not os.path.exists(VERSIONS_CACHE_PATH):
             return None
@@ -990,7 +989,6 @@ class MainWindow(QMainWindow):
             print("Saved fresh versions to cache.")
         except Exception as e:
             print(f"Error saving version cache: {e}")
-    # --- END CACHE METHODS ---
 
     @pyqtSlot()
     def start_launch(self):
@@ -1004,7 +1002,7 @@ class MainWindow(QMainWindow):
             self.update_status("⚠️ Please select a version")
             return
             
-        use_fabric = self.fabric_toggle.isChecked() # <--- GET TOGGLE STATE
+        use_fabric = self.fabric_toggle.isChecked()
 
         self.launch_button.setEnabled(False)
         self.launch_button.setText("⏳ LAUNCHING...")
@@ -1013,7 +1011,7 @@ class MainWindow(QMainWindow):
         self.progress_bar.setValue(0)
         
         self.worker_thread = QThread()
-        self.worker = Worker(version, username, use_fabric) # <--- PASS TO WORKER
+        self.worker = Worker(version, username, use_fabric)
         self.worker.moveToThread(self.worker_thread)
 
         self.worker_thread.started.connect(self.worker.run)
