@@ -1,3 +1,4 @@
 requests
 minecraft_launcher_lib
 PyQT6
+pypackager
