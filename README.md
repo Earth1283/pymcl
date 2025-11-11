@@ -14,11 +14,11 @@ A Python Minecraft Launcher - easily manage and launch Minecraft instances with 
 
 - Python 3.8 or higher
 - pip (Python package manager)
-- Java Runtime Environment (JRE)
+- Java Runtime Environment (Optional, but for a speedy startup, please install it)
 
 ## 🚀 Quick Start
 
-### 1️⃣ Installation
+### 1️⃣ Installation - All Platforms
 
 ```bash
 # Clone the repository
@@ -35,6 +35,12 @@ pip install -r requirements.txt
 # Start the launcher
 python launcher.py
 ```
+
+### ⚡️ Quick EXE - Windows Only
+
+Download the exe from the latest release [here](https://github.com/Earth1283/PyMCL/releases)
+
+Double click the exe, and you're done!
 
 ## 🎮 Usage
 
