@@ -1,6 +1,6 @@
 # 🎮 PyMCL
 
-A Python Minecraft Launcher - easily manage and launch Minecraft instances with a simple, intuitive interface.
+A Python Minecraft Launcher - easily manage and launch Minecraft instances with a simple, intuitive interface and multiple distribution methods.
 
 ## ✨ Features
 
@@ -49,6 +49,9 @@ Simply run:
 ```bash
 python launcher.py
 ```
+
+### EXE Mode
+Simply double click that exe file. Period.
 
 ## 🤝 Contributing
 

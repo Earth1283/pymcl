@@ -1,7 +1,6 @@
 from pymcl.main import main
 import os
 
-
 def check_dirs() -> None:
     MINECRAFT_DIR = os.path.join(os.path.expanduser("~"), ".pymcl-data")
     IMAGES_DIR = os.path.join(MINECRAFT_DIR, "images")

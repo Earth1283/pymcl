@@ -17,3 +17,4 @@ class LogLevel(Enum):
         if isinstance(other, LogLevel):
             return self.value <= other.value
         return NotImplemented
+

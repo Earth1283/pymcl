@@ -18,7 +18,6 @@ from .constants import MODS_DIR
 from .widgets import ModListWidget
 from .workers import ModDownloader
 
-
 class ModManagerDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -166,3 +165,4 @@ class ModManagerDialog(QDialog):
         if success:
             self.url_input.clear()
             self.populate_mods_list()
+

@@ -10,7 +10,7 @@ try:
 
     install(show_locals=True)
 except Exception:
-    pass
+    pass # aww the user doesnt have vim
 
 
 def main():
@@ -18,7 +18,7 @@ def main():
 
     font = QFont("Segoe UI")
     if font.family() != "Segoe UI":
-        font = QFont("Inter")
+        font = QFont("Inter") # try inter next
     font.setStyleHint(QFont.StyleHint.SansSerif)
     app.setFont(font)
 
