@@ -7,8 +7,3 @@ DEFAULT_IMAGE_URL = "https://sm.ign.com/ign_ap/gallery/m/minecraft-/minecraft-vi
 DEFAULT_IMAGE_PATH = os.path.join(IMAGES_DIR, "default_background.jpg")
 MODS_DIR = os.path.join(MINECRAFT_DIR, "mods") 
 VERSIONS_CACHE_PATH = os.path.join(MINECRAFT_DIR, "versions_cache.json") 
-
-if not os.path.exists(MINECRAFT_DIR):
-    os.makedirs(MINECRAFT_DIR)
-os.makedirs(IMAGES_DIR, exist_ok=True)
-os.makedirs(MODS_DIR, exist_ok=True)
