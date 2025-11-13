@@ -7,12 +7,12 @@ class LogLevel(Enum):
     WARNING = 2
     ERROR = 3
     CRITICAL = 4
-    
+
     def __lt__(self, other):
         if isinstance(other, LogLevel):
             return self.value < other.value
         return NotImplemented
-    
+
     def __le__(self, other):
         if isinstance(other, LogLevel):
             return self.value <= other.value
