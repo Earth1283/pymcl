@@ -33,7 +33,7 @@ pip install -r requirements.txt
 
 ```bash
 # Start the launcher
-python launcher.py
+python main.py
 ```
 
 ### ⚡️ Quick EXE - Windows Only
