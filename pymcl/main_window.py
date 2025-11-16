@@ -46,7 +46,7 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle(APP_NAME)
         self.setMinimumSize(900, 500)
-        self.resize(900, 500)
+        self.resize(1000, 600)
 
         self.init_ui()
         self.apply_styles()
