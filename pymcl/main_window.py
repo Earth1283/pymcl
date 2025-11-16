@@ -2,9 +2,6 @@ import glob
 import json
 import os
 import uuid
-import webbrowser
-from http.server import BaseHTTPRequestHandler, HTTPServer
-
 from PyQt6.QtCore import QThread, pyqtSlot, Qt, QTimer
 from PyQt6.QtGui import QColor, QFont
 from PyQt6.QtWidgets import (
@@ -24,14 +21,14 @@ from PyQt6.QtWidgets import (
 
 from .constants import (
     APP_NAME,
-    CLIENT_ID,
     IMAGES_DIR,
     VERSIONS_CACHE_PATH,
+    MicrosoftInfo
 )
 from .mod_manager import ModManagerDialog
 from .stylesheet import STYLESHEET
 from .workers import ImageDownloader, VersionFetcher, Worker
-import minecraft_launcher_lib
+from .microsoft_auth import MicrosoftAuth
 
 
 class MainWindow(QMainWindow):
@@ -44,7 +41,7 @@ class MainWindow(QMainWindow):
         self.image_downloader_thread = None
         self.image_downloader = None
         self.bg_timer = None
-        self.minecraft_info = None
+        self.minecraft_info: MicrosoftInfo | None = None
 
         self.image_files = []
         self.current_image_index = 0
@@ -52,6 +49,10 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(APP_NAME)
         self.setMinimumSize(900, 500)
         self.resize(1000, 600)
+
+        self.microsoft_auth = MicrosoftAuth()
+        self.microsoft_auth.login_success.connect(self.on_login_success)
+        self.microsoft_auth.login_failed.connect(self.update_status)
 
         self.init_ui()
         self.apply_styles()
@@ -204,49 +205,27 @@ class MainWindow(QMainWindow):
             self.microsoft_login_button.setVisible(True)
 
     def start_microsoft_login(self):
-        login_url, state = minecraft_launcher_lib.microsoft_account.get_login_url(
-            CLIENT_ID, "http://localhost:8000"
-        )
-        webbrowser.open(login_url)
+        self.microsoft_auth.start_login()
 
-        class AuthHandler(BaseHTTPRequestHandler):
-            def do_GET(self_handler):
-                auth_code = self_handler.path.split("?code=")[1]
-                self_handler.send_response(200)
-                self_handler.send_header("Content-type", "text/html")
-                self_handler.end_headers()
-                self_handler.wfile.write(b"You can now close this window.")
-                self.finish_microsoft_login(auth_code)
-
-        server = HTTPServer(("localhost", 8000), AuthHandler)
-        server.handle_request()
-
-    def finish_microsoft_login(self, auth_code):
-        try:
-            minecraft_info = minecraft_launcher_lib.microsoft_account.complete_login(
-                CLIENT_ID,
-                None,
-                "http://localhost:8000",
-                auth_code,
-            )
-            self.minecraft_info = minecraft_info
-            self.save_microsoft_info(minecraft_info)
-            self.update_status(f"Logged in as {minecraft_info['username']}")
-            self.microsoft_login_button.setText(f"Logged in as {minecraft_info['username']}")
-        except Exception as e:
-            self.update_status(f"Login failed: {e}")
-
-    def save_microsoft_info(self, info):
-        with open("microsoft_info.json", "w") as f:
-            json.dump(info, f)
+    def on_login_success(self, info: MicrosoftInfo):
+        self.minecraft_info = info
+        self.update_status(f"Logged in as {info['username']}")
+        self.microsoft_login_button.setText(f"Logged in as {info['username']}")
 
     def load_microsoft_info(self):
-        if os.path.exists("microsoft_info.json"):
-            with open("microsoft_info.json", "r") as f:
-                self.minecraft_info = json.load(f)
-                self.update_status(f"Logged in as {self.minecraft_info['username']}")
-                self.microsoft_login_button.setText(f"Logged in as {self.minecraft_info['username']}")
+        info = self.microsoft_auth.load_microsoft_info()
+        if info:
+            if self.microsoft_auth.is_token_expired():
+                self.update_status("Refreshing token...")
+                info = self.microsoft_auth.refresh_token()
+
+            if info:
+                self.minecraft_info = info
+                self.update_status(f"Logged in as {info['username']}")
+                self.microsoft_login_button.setText(f"Logged in as {info['username']}")
                 self.auth_method_combo.setCurrentText("Microsoft")
+            else:
+                self.update_status("Failed to refresh token. Please login again.")
 
     def apply_styles(self):
         self.setStyleSheet(STYLESHEET)
@@ -450,7 +429,7 @@ class MainWindow(QMainWindow):
                 return
             options["username"] = self.minecraft_info["username"]
             options["uuid"] = self.minecraft_info["uuid"]
-            options["token"] = self.minecraft_info["token"]
+            options["token"] = self.minecraft_info["access_token"]
 
         self.launch_button.setEnabled(False)
         self.launch_button.setText("⏳ LAUNCHING...")

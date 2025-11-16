@@ -3,6 +3,7 @@ import subprocess
 import uuid
 import json
 from typing import cast
+import datetime
 
 import minecraft_launcher_lib
 import requests
@@ -17,6 +18,13 @@ from .constants import (
 )
 
 
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, datetime.datetime):
+            return o.isoformat()
+        return super().default(o)
+
+
 class VersionFetcher(QObject):
     finished = pyqtSignal(list, bool, str)
 
@@ -27,7 +35,7 @@ class VersionFetcher(QObject):
 
             try:
                 with open(VERSIONS_CACHE_PATH, "w") as f:
-                    json.dump(versions, f)
+                    json.dump(versions, f, cls=DateTimeEncoder)
                 print(f"Version list cached to {VERSIONS_CACHE_PATH}")
             except Exception as e:
                 print(f"Failed to save version cache: {e}")
