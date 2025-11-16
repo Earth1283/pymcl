@@ -48,7 +48,7 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle(APP_NAME)
         self.setMinimumSize(900, 500)
-        self.resize(1000, 600)
+        self.resize(1050, 650)
 
         self.microsoft_auth = MicrosoftAuth()
         self.microsoft_auth.login_success.connect(self.on_login_success)
