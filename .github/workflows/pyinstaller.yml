@@ -11,32 +11,57 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
-    
+
     steps:
-      - uses: actions/checkout@v3
-      
+      - uses: actions/checkout@v4
+
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      
+
       - name: Install dependencies
+        # Added check for requirements and explicit pyinstaller install just in case
         run: |
-          pip install -r requirements.txt
-      
+          python -m pip install --upgrade pip
+          if (Test-Path requirements.txt) { pip install -r requirements.txt }
+          pip install pyinstaller
+
+      - name: Download UPX
+        # Using bash shell here makes curl/unzip syntax easier/safer on Windows
+        shell: bash
+        run: |
+          curl -LO https://github.com/upx/upx/releases/download/v4.2.4/upx-4.2.4-win64.zip
+          7z x upx-4.2.4-win64.zip -y
+          # Save UPX path to env var so the next step can find it
+          echo "UPX_DIR=$(pwd)/upx-4.2.4-win64" >> $GITHUB_ENV
+
       - name: Build executable with PyInstaller
+        # PowerShell syntax (using backtick ` for line continuation)
+        # Added --upx-dir so it actually uses the UPX you downloaded
         run: |
-          pyinstaller --onefile --windowed --name PyMCL main.py
-      
+          pyinstaller --onefile --windowed --name PyMCL `
+            --upx-dir "${{ env.UPX_DIR }}" `
+            --exclude-module rich `
+            --exclude-module PyQt6.QtWebEngineWidgets `
+            --exclude-module PyQt6.QtMultimedia `
+            main.py
+
       - name: Generate SHA256 checksum
         run: |
           $exe_path = "dist\PyMCL.exe"
-          $checksum = (Get-FileHash -Path $exe_path -Algorithm SHA256).Hash
-          $checksum | Out-File -FilePath "PyMCL.exe.sha256" -Encoding utf8
-          echo "SHA256: $checksum"
-      
+          if (Test-Path $exe_path) {
+            $checksum = (Get-FileHash -Path $exe_path -Algorithm SHA256).Hash
+            $checksum | Out-File -FilePath "PyMCL.exe.sha256" -Encoding utf8
+            Write-Host "SHA256: $checksum"
+          } else {
+            Write-Error "Executable not found at $exe_path"
+            exit 1
+          }
+
       - name: Publish to Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
+        if: success()
         with:
           files: |
             dist/PyMCL.exe
