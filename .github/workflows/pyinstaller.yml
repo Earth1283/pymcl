@@ -1,4 +1,4 @@
-name: PyInstaller Build
+name: Nuitka Build
 
 on:
   push:
@@ -27,46 +27,16 @@ jobs:
           if (Test-Path requirements.txt) { pip install -r requirements.txt }
           pip install pyinstaller
 
-      - name: Download UPX
-        # Using bash shell here makes curl/unzip syntax easier/safer on Windows
-        shell: bash
-        run: |
-          curl -LO https://github.com/upx/upx/releases/download/v4.2.4/upx-4.2.4-win64.zip
-          7z x upx-4.2.4-win64.zip -y
-          # Save UPX path to env var so the next step can find it
-          echo "UPX_DIR=$(pwd)/upx-4.2.4-win64" >> $GITHUB_ENV
+      - name: Install Nuitka
+        run: pip install nuitka zstandard
 
-      - name: Build executable with PyInstaller
-        # PowerShell syntax
+      - name: Build with Nuitka
         run: |
-          pyinstaller --onefile --windowed --name PyMCL `
-            --upx-dir "${{ env.UPX_DIR }}" `
-            --exclude-module rich `
-            --exclude-module tkinter `
-            --exclude-module unittest `
-            --exclude-module pydoc `
-            --exclude-module email `
-            --exclude-module PyQt6.QtQml `
-            --exclude-module PyQt6.QtQuick `
-            --exclude-module PyQt6.QtQuickWidgets `
-            --exclude-module PyQt6.QtSql `
-            --exclude-module PyQt6.QtMultimedia `
-            --exclude-module PyQt6.QtMultimediaWidgets `
-            --exclude-module PyQt6.QtNetwork `
-            --exclude-module PyQt6.QtSvg `
-            --exclude-module PyQt6.QtBluetooth `
-            --exclude-module PyQt6.QtDBus `
-            --exclude-module PyQt6.QtNfc `
-            --exclude-module PyQt6.QtWebChannel `
-            --exclude-module PyQt6.QtWebSockets `
-            --exclude-module PyQt6.QtPositioning `
-            --exclude-module PyQt6.QtSensors `
-            --exclude-module PyQt6.QtSerialPort `
-            --exclude-module PyQt6.QtDesigner `
-            --exclude-module PyQt6.QtHelp `
-            --exclude-module PyQt6.QtTest `
-            --exclude-module PyQt6.QtXml `
-            --exclude-module PyQt6.QtPdf `
+          python -m nuitka --onefile --standalone `
+            --enable-plugin=pyqt6 `
+            --include-package-data=minecraft_launcher_lib `
+            --windows-console-mode=disable `
+            --output-filename=PyMCL.exe `
             main.py
 
       - name: Generate SHA256 checksum
