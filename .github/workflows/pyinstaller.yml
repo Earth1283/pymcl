@@ -36,6 +36,7 @@ jobs:
             --enable-plugin=pyqt6 `
             --include-package-data=minecraft_launcher_lib `
             --windows-console-mode=disable `
+            --assume-yes-for-downloads `
             --output-filename=PyMCL.exe `
             main.py
 
