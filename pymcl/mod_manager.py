@@ -12,18 +12,16 @@ from PyQt6.QtWidgets import (
     QMessageBox,
     QPushButton,
     QVBoxLayout,
+    QWidget,
 )
 
 from .constants import MODS_DIR
 from .widgets import ModListWidget
 from .workers import ModDownloader
 
-class ModManagerDialog(QDialog):
+class ModsPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Mod Manager")
-        self.setMinimumSize(600, 400)
-
         self.downloader_thread = None
         self.downloader = None
 
@@ -65,19 +63,19 @@ class ModManagerDialog(QDialog):
 
         button_layout = QHBoxLayout()
 
-        open_folder_button = QPushButton("Open Mods Folder")
+        open_folder_button = QPushButton("Mods Folder")
         open_folder_button.setObjectName("secondary_button")
         open_folder_button.clicked.connect(self.open_mods_folder)
         button_layout.addWidget(open_folder_button)
 
-        delete_button = QPushButton("Delete Selected Mod")
+        delete_button = QPushButton("Delete")
         delete_button.setObjectName("danger_button")
         delete_button.clicked.connect(self.delete_selected_mod)
         button_layout.addWidget(delete_button)
 
         button_layout.addStretch(1)
 
-        refresh_button = QPushButton("Refresh List")
+        refresh_button = QPushButton("Refresh")
         refresh_button.setObjectName("secondary_button")
         refresh_button.clicked.connect(self.populate_mods_list)
         button_layout.addWidget(refresh_button)
