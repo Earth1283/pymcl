@@ -23,8 +23,12 @@ class ActionHandler:
         self.nav_mods_action.triggered.connect(self.main_window.nav_mods_button.click)
 
         self.nav_settings_action = QAction("Go to Settings Page", self.main_window)
-        self.nav_settings_action.setShortcut(QKeySequence("Ctrl+3"))
-        self.nav_settings_action.triggered.connect(self.main_window.nav_settings_button.click)
+        self.nav_settings_action.setShortcut(QKeySequence("Ctrl+4"))
+        self.nav_settings_action.triggered.connect(lambda: self.main_window.switch_page(3, self.main_window.nav_settings_button))
+        
+        self.nav_browse_mods_action = QAction("Browse Mods", self.main_window)
+        self.nav_browse_mods_action.setShortcut(QKeySequence("Ctrl+3"))
+        self.nav_browse_mods_action.triggered.connect(lambda: self.main_window.switch_page(2, self.main_window.nav_browse_mods_button))
         
         # Mod manager actions
         self.refresh_mods_action = QAction("Refresh Mods List", self.main_window)
@@ -42,6 +46,7 @@ class ActionHandler:
         menu.addSeparator()
         menu.addAction(self.nav_launch_action)
         menu.addAction(self.nav_mods_action)
+        menu.addAction(self.nav_browse_mods_action)
         menu.addAction(self.nav_settings_action)
         menu.addSeparator()
         menu.addAction(self.quit_action)
@@ -74,6 +79,7 @@ class ActionHandler:
         navigate_menu = menu_bar.addMenu("&Navigate")
         navigate_menu.addAction(self.nav_launch_action)
         navigate_menu.addAction(self.nav_mods_action)
+        navigate_menu.addAction(self.nav_browse_mods_action)
         navigate_menu.addAction(self.nav_settings_action)
         
         # Mods Menu
@@ -90,6 +96,7 @@ def setup_actions_and_menus(main_window):
         handler.launch_action,
         handler.nav_launch_action,
         handler.nav_mods_action,
+        handler.nav_browse_mods_action,
         handler.nav_settings_action,
         handler.quit_action,
         handler.refresh_mods_action

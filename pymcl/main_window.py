@@ -36,6 +36,7 @@ from .stylesheet import STYLESHEET
 from .workers import ImageDownloader, VersionFetcher, Worker
 from .microsoft_auth import MicrosoftAuth
 from .actions import setup_actions_and_menus
+from .mod_browser import ModBrowserPage
 
 
 class LaunchPage(QWidget):
@@ -623,6 +624,11 @@ class MainWindow(QMainWindow):
         self.nav_mods_button.setCursor(Qt.CursorShape.PointingHandCursor)
         left_layout.addWidget(self.nav_mods_button)
 
+        self.nav_browse_mods_button = QPushButton("Browse Mods")
+        self.nav_browse_mods_button.setObjectName("nav_button")
+        self.nav_browse_mods_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        left_layout.addWidget(self.nav_browse_mods_button)
+
         self.nav_settings_button = QPushButton("Settings")
         self.nav_settings_button.setObjectName("nav_button")
         self.nav_settings_button.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -635,7 +641,7 @@ class MainWindow(QMainWindow):
         content_frame = QFrame()
         content_frame.setObjectName("central_widget_frame")
         content_layout = QVBoxLayout(content_frame)
-        content_layout.setContentsMargins(40, 40, 40, 40)
+        content_layout.setContentsMargins(0, 0, 0, 0)
         content_layout.setSpacing(0)
         main_layout.addWidget(content_frame, 3)
 
@@ -645,14 +651,17 @@ class MainWindow(QMainWindow):
         self.launch_page = LaunchPage()
         self.settings_page = SettingsPage()
         self.mods_page = ModsPage()
+        self.mod_browser_page = ModBrowserPage()
 
         self.stacked_widget.addWidget(self.launch_page)
         self.stacked_widget.addWidget(self.mods_page)
+        self.stacked_widget.addWidget(self.mod_browser_page)
         self.stacked_widget.addWidget(self.settings_page)
         
         self.nav_launch_button.clicked.connect(lambda: self.switch_page(0, self.nav_launch_button))
         self.nav_mods_button.clicked.connect(lambda: self.switch_page(1, self.nav_mods_button))
-        self.nav_settings_button.clicked.connect(lambda: self.switch_page(2, self.nav_settings_button))
+        self.nav_browse_mods_button.clicked.connect(lambda: self.switch_page(2, self.nav_browse_mods_button))
+        self.nav_settings_button.clicked.connect(lambda: self.switch_page(3, self.nav_settings_button))
 
         # Connect signals from launch page to main window slots
         self.launch_page.username_input.textChanged.connect(self.save_settings)
@@ -668,8 +677,15 @@ class MainWindow(QMainWindow):
         if index == current_index:
             return
 
+        # Pass launch options to mod browser
+        if self.stacked_widget.widget(index) == self.mod_browser_page:
+            version = self.launch_page.version_combo.currentText()
+            use_fabric = self.launch_page.fabric_toggle.isChecked()
+            loader = "fabric" if use_fabric else None
+            self.mod_browser_page.set_launch_filters(version, loader)
+
         # Update nav button styles
-        for btn in [self.nav_launch_button, self.nav_mods_button, self.nav_settings_button]:
+        for btn in [self.nav_launch_button, self.nav_mods_button, self.nav_browse_mods_button, self.nav_settings_button]:
             btn.setObjectName("nav_button")
         button.setObjectName("nav_button_active")
         self.apply_styles()
