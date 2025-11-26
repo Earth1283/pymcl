@@ -35,6 +35,7 @@ from .mod_manager import ModsPage
 from .stylesheet import STYLESHEET
 from .workers import ImageDownloader, VersionFetcher, Worker
 from .microsoft_auth import MicrosoftAuth
+from .actions import setup_actions_and_menus
 
 
 class LaunchPage(QWidget):
@@ -554,6 +555,8 @@ class MainWindow(QMainWindow):
         self.init_background_images()
         self.load_microsoft_info()
         self.load_settings()
+        
+        setup_actions_and_menus(self)
 
     def show(self):
         super().show()
@@ -583,15 +586,15 @@ class MainWindow(QMainWindow):
         central_widget.setObjectName("main_central_widget")
         self.setCentralWidget(central_widget)
         main_layout = QHBoxLayout(central_widget)
-        main_layout.setContentsMargins(40, 40, 40, 40)
-        main_layout.setSpacing(40)
+        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setSpacing(20)
 
         # Left navigation
         left_widget = QWidget()
         left_widget.setObjectName("left_title_container")
         left_layout = QVBoxLayout(left_widget)
         left_layout.setSpacing(5)
-        left_layout.setContentsMargins(0, 0, 0, 0)
+        left_layout.setContentsMargins(10, 10, 10, 10)
 
         title_frame = QFrame()
         title_frame.setObjectName("title_frame")

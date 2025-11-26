@@ -101,25 +101,21 @@ QComboBox QAbstractItemView::item:hover {
     background-color: #3a3a3a;
 }
 QPushButton {
-    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                      stop:0 #5ab0ff, stop:1 #4a9eff);
+    background-color: #4a9eff;
     color: #ffffff;
     border: none;
     border-radius: 8px;
     padding: 0 20px;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
-    letter-spacing: 0.5px;
     min-height: 50px;
     transition: background-color 0.2s;
 }
 QPushButton:hover {
-    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                      stop:0 #6ac0ff, stop:1 #5ab0ff);
+    background-color: #5badff;
 }
 QPushButton:pressed {
-    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                      stop:0 #4a9eff, stop:1 #3a8eef);
+    background-color: #3a8eef;
 }
 QPushButton:disabled {
     background-color: #2a2a2a;
@@ -127,40 +123,27 @@ QPushButton:disabled {
 }
 
 QPushButton#secondary_button {
-    background-color: #333;
+    background-color: #3c3c3c;
     color: #f0f0f0;
-    border: 1px solid #444;
-    padding: 0 20px;
-    font-size: 15px;
-    font-weight: 600;
-    min-height: 53px;
-    border-radius: 8px;
-    transition: background-color 0.2s, border-color 0.2s;
+    border: none;
 }
 QPushButton#secondary_button:hover {
-    background-color: #3a3a3a;
-    border-color: #555;
+    background-color: #4a4a4a;
 }
 QPushButton#secondary_button:pressed {
-    background-color: #2a2a2a;
+    background-color: #303030;
 }
 QPushButton#danger_button {
-    background-color: transparent;
+    background-color: rgba(255, 80, 80, 0.2);
     color: #ff8080;
-    border: 1px solid #ff8080;
-    padding: 0 20px;
-    font-size: 15px;
-    font-weight: 600;
-    min-height: 45px;
-    border-radius: 8px;
-    transition: background-color 0.2s, color 0.2s;
+    border: 1px solid rgba(255, 80, 80, 0.5);
 }
 QPushButton#danger_button:hover {
-    background-color: #ff8080;
-    color: #fff;
+    background-color: rgba(255, 80, 80, 0.3);
+    border-color: rgba(255, 80, 80, 0.7);
 }
 QPushButton#danger_button:pressed {
-    background-color: #e87070;
+    background-color: rgba(255, 80, 80, 0.4);
 }
 QProgressBar {
     border: none;
@@ -244,12 +227,15 @@ QWidget#main_central_widget {
 }
 
 QWidget#left_title_container {
-    background: transparent;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
+    padding: 10px;
 }
 
 QFrame#title_frame {
-    background-color: rgba(26, 26, 26, 0.75); /* Translucent background */
+    background-color: transparent;
     border-radius: 12px;
+    border: none;
 }
 
 QDialog {

@@ -1,5 +1,12 @@
 {
     "last_username": "Earth1283",
     "mods_dir": "/System/Library/CoreServices/Applications/minecraft/mods",
-    "images_dir": ""
+    "images_dir": "/Users/sonnycui/Downloads/wallpapers",
+    "java_executable": "",
+    "jvm_arguments": "",
+    "memory_gb": 4,
+    "resolution": {
+        "width": "",
+        "height": ""
+    }
 }
