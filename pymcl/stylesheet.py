@@ -366,4 +366,41 @@ QMenu::separator {
     background: #3c3c3c;
     margin: 5px 0;
 }
+
+/* Mod Browser */
+QWidget#floating_search_container {
+    background-color: rgba(37, 37, 37, 0.95);
+    border-bottom: 1px solid #3a3a3a;
+}
+QWidget#mod_card {
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    border: 1px solid #3a3a3a;
+    padding: 15px;
+}
+QWidget#mod_card:hover {
+    border-color: #4a9eff;
+}
+QLabel#mod_card_title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+}
+QLabel#mod_card_downloads {
+    font-size: 12px;
+    color: #888;
+}
+QPushButton#download_badge {
+    background-color: #4a9eff;
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    padding: 5px 15px;
+    font-size: 12px;
+    font-weight: 600;
+    min-height: 24px;
+}
+QPushButton#download_badge:hover {
+    background-color: #5badff;
+}
 """

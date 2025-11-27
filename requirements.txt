@@ -3,3 +3,5 @@ minecraft_launcher_lib
 PyQT6
 pyinstaller
 rich
+beautifulsoup4
+lxml

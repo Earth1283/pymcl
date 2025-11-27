@@ -63,6 +63,16 @@ Download the exe from the latest release [here](https://github.com/Earth1283/PyM
 
 Double click the exe, and you're done!
 
+### Clearing the Cache
+To clear the icon cache, you can either:
+- Go to the `Tools` menu and select `Clear Icon Cache`.
+- Go to the `Mods` page and click the `Clear Icon Cache` button.
+
+### Mod Explorer
+The mod explorer has been updated to a new 3-column grid layout. Each mod is displayed as a card with its icon, name, and a download badge. The search bar is now a floating bar at the top of the page.
+
+Clicking on a mod card (but not the download button) will open a new window with the mod's full description, rendered from Markdown. To download a mod, you must first select a game version and loader from the "Launch" page. If you have not selected a version and loader, you will be prompted to do so before the download can begin.
+
 ## 🎮 Usage
 
 ### GUI Mode

@@ -25,11 +25,11 @@ class ActionHandler:
         self.nav_settings_action = QAction("Go to Settings Page", self.main_window)
         self.nav_settings_action.setShortcut(QKeySequence("Ctrl+4"))
         self.nav_settings_action.triggered.connect(lambda: self.main_window.switch_page(3, self.main_window.nav_settings_button))
-        
+
         self.nav_browse_mods_action = QAction("Browse Mods", self.main_window)
         self.nav_browse_mods_action.setShortcut(QKeySequence("Ctrl+3"))
         self.nav_browse_mods_action.triggered.connect(lambda: self.main_window.switch_page(2, self.main_window.nav_browse_mods_button))
-        
+
         # Mod manager actions
         self.refresh_mods_action = QAction("Refresh Mods List", self.main_window)
         self.refresh_mods_action.setShortcut(QKeySequence("F5"))
@@ -39,6 +39,10 @@ class ActionHandler:
         self.quit_action = QAction("Quit", self.main_window)
         self.quit_action.setShortcut(QKeySequence("Ctrl+Q"))
         self.quit_action.triggered.connect(self.main_window.close)
+
+        # Tools actions
+        self.clear_cache_action = QAction("Clear Icon Cache", self.main_window)
+        self.clear_cache_action.triggered.connect(self.main_window.clear_cache)
 
     def create_main_context_menu(self):
         menu = QMenu(self.main_window)
@@ -51,13 +55,13 @@ class ActionHandler:
         menu.addSeparator()
         menu.addAction(self.quit_action)
         return menu
-        
+
     def create_mods_context_menu(self):
         menu = QMenu(self.main_window)
         menu.addAction(self.refresh_mods_action)
         menu.addAction(QAction("Open Mods Folder", self.main_window, triggered=self.main_window.mods_page.open_mods_folder))
         menu.addSeparator()
-        
+
         selected_items = self.main_window.mods_page.mod_list_widget.selectedItems()
         if selected_items:
             delete_action = QAction("Delete Selected Mod", self.main_window, triggered=self.main_window.mods_page.delete_selected_mod)
@@ -81,16 +85,20 @@ class ActionHandler:
         navigate_menu.addAction(self.nav_mods_action)
         navigate_menu.addAction(self.nav_browse_mods_action)
         navigate_menu.addAction(self.nav_settings_action)
-        
+
         # Mods Menu
         mods_menu = menu_bar.addMenu("&Mods")
         mods_menu.addAction(self.refresh_mods_action)
         mods_menu.addAction(QAction("Open Mods Folder", self.main_window, triggered=self.main_window.mods_page.open_mods_folder))
 
+        # Tools Menu
+        tools_menu = menu_bar.addMenu("&Tools")
+        tools_menu.addAction(self.clear_cache_action)
+
 def setup_actions_and_menus(main_window):
     handler = ActionHandler(main_window)
     main_window.action_handler = handler
-    
+
     # Add shortcuts that should be active globally
     main_window.addActions([
         handler.launch_action,
@@ -112,11 +120,11 @@ def setup_actions_and_menus(main_window):
 
     main_window.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
     main_window.customContextMenuRequested.connect(show_main_context_menu)
-    
+
     # Mods page context menu
     def show_mods_context_menu(pos):
         menu = handler.create_mods_context_menu()
         menu.exec(main_window.mods_page.mod_list_widget.mapToGlobal(pos))
-        
+
     main_window.mods_page.mod_list_widget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
     main_window.mods_page.mod_list_widget.customContextMenuRequested.connect(show_mods_context_menu)

@@ -15,6 +15,7 @@ from .constants import (
     DEFAULT_IMAGE_URL,
     DEFAULT_IMAGE_PATH,
     MODS_DIR,
+    ICON_CACHE_DIR,
 )
 
 
@@ -110,6 +111,48 @@ class ModDownloader(QObject):
             self.finished.emit(False, error_msg)
 
 
+class IconDownloader(QObject):
+    finished = pyqtSignal(str, str)
+
+    def __init__(self, url, mod_id):
+        super().__init__()
+        self.url = url
+        self.mod_id = mod_id
+
+    @pyqtSlot()
+    def run(self):
+        try:
+            response = requests.get(self.url)
+            response.raise_for_status()
+
+            # Create a unique filename for the icon
+            filename = f"{self.mod_id}.png"
+            save_path = os.path.join(ICON_CACHE_DIR, filename)
+
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+
+            with open(save_path, "wb") as f:
+                f.write(response.content)
+            self.finished.emit(self.mod_id, save_path)
+        except Exception as e:
+            print(f"Error downloading icon: {e}")
+            self.finished.emit(self.mod_id, "")
+
+
+class ProjectFetcher(QObject):
+    finished = pyqtSignal(dict)
+
+    def __init__(self, modrinth_client, slug):
+        super().__init__()
+        self.modrinth_client = modrinth_client
+        self.slug = slug
+
+    @pyqtSlot()
+    def run(self):
+        project_data = self.modrinth_client.get_project(self.slug)
+        self.finished.emit(project_data)
+
+
 class Worker(QObject):
     progress = pyqtSignal(int, int)
     status = pyqtSignal(str)
@@ -165,7 +208,7 @@ class Worker(QObject):
             set_progress(1, 1)
 
             set_status("Getting launch command...")
-            
+
             # Clean up options, removing keys with None or empty values
             # so that minecraft-launcher-lib can use its defaults.
             cleaned_options = {k: v for k, v in self.options.items() if v}

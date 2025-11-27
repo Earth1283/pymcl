@@ -1,0 +1,55 @@
+import requests
+import json
+
+class ModrinthClient:
+    BASE_URL = "https://api.modrinth.com/v2"
+
+    def __init__(self):
+        self.session = requests.Session()
+        self.session.headers.update(
+            {"User-Agent": "PyMCL/1.0 (github.com/sonnynomnom/PyMCL)"}
+        )
+
+    def search(self, query, game_versions=None, loader=None):
+        params = {"query": query, "limit": 20}
+        facets = []
+        if game_versions:
+            facets.append([f"versions:{v}" for v in game_versions])
+        if loader:
+            # Modrinth uses 'categories' for loaders in facets
+            facets.append([f"categories:{loader}"])
+
+        if facets:
+            params["facets"] = json.dumps(facets)
+
+        try:
+            response = self.session.get(f"{self.BASE_URL}/search", params=params)
+            response.raise_for_status()
+            return response.json().get("hits", [])
+        except requests.RequestException as e:
+            print(f"Error searching Modrinth: {e}")
+            return []
+
+    def get_project(self, slug):
+        try:
+            response = self.session.get(f"{self.BASE_URL}/project/{slug}")
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            print(f"Error getting project from Modrinth: {e}")
+            return {}
+
+    def get_versions(self, mod_id, game_versions=None, loader=None):
+        params = {}
+        if game_versions:
+            params["game_versions"] = json.dumps(game_versions)
+        if loader:
+            params["loaders"] = json.dumps([loader])
+
+        try:
+            response = self.session.get(f"{self.BASE_URL}/project/{mod_id}/version", params=params)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            print(f"Error getting versions from Modrinth: {e}")
+            return []

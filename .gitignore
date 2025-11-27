@@ -2,3 +2,4 @@
 */__pycache__
 /pymcl/logger/
 pymcl/config/settings.json
+.idea/

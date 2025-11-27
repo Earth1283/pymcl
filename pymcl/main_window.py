@@ -1,6 +1,7 @@
 import glob
 import json
 import os
+import shutil
 from PyQt6 import sip
 import uuid
 from PyQt6.QtCore import QThread, pyqtSlot, Qt, QTimer, QPropertyAnimation, QEasingCurve, QParallelAnimationGroup, QPoint
@@ -29,6 +30,7 @@ from .constants import (
     APP_NAME,
     IMAGES_DIR,
     VERSIONS_CACHE_PATH,
+    ICON_CACHE_DIR,
     MicrosoftInfo
 )
 from .mod_manager import ModsPage
@@ -42,11 +44,11 @@ from .mod_browser import ModBrowserPage
 class LaunchPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        
+
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
         scroll_area.setObjectName("content_scroll_area")
-        
+
         container = QWidget()
         layout = QVBoxLayout(container)
         layout.setContentsMargins(20, 20, 20, 20)
@@ -137,9 +139,9 @@ class LaunchPage(QWidget):
         layout.addWidget(self.status_label)
 
         layout.addStretch(1)
-        
+
         scroll_area.setWidget(container)
-        
+
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0,0,0,0)
         main_layout.addWidget(scroll_area)
@@ -450,7 +452,7 @@ class SettingsPage(QWidget):
         save_button.setMinimumHeight(55)
         save_button.clicked.connect(self.save_settings)
         layout.addWidget(save_button)
-        
+
         scroll_area.setWidget(container)
 
         main_layout = QVBoxLayout(self)
@@ -556,7 +558,7 @@ class MainWindow(QMainWindow):
         self.init_background_images()
         self.load_microsoft_info()
         self.load_settings()
-        
+
         setup_actions_and_menus(self)
 
     def show(self):
@@ -657,7 +659,7 @@ class MainWindow(QMainWindow):
         self.stacked_widget.addWidget(self.mods_page)
         self.stacked_widget.addWidget(self.mod_browser_page)
         self.stacked_widget.addWidget(self.settings_page)
-        
+
         self.nav_launch_button.clicked.connect(lambda: self.switch_page(0, self.nav_launch_button))
         self.nav_mods_button.clicked.connect(lambda: self.switch_page(1, self.nav_mods_button))
         self.nav_browse_mods_button.clicked.connect(lambda: self.switch_page(2, self.nav_browse_mods_button))
@@ -669,7 +671,7 @@ class MainWindow(QMainWindow):
         self.launch_page.microsoft_login_button.clicked.connect(self.start_microsoft_login)
         self.launch_page.launch_button.clicked.connect(self.start_launch)
         self.launch_page.mod_manager_button.clicked.connect(self.open_mod_manager)
-        
+
         self.update_auth_widgets()
 
     def switch_page(self, index, button):
@@ -696,7 +698,7 @@ class MainWindow(QMainWindow):
 
     def _create_slide_animation(self, new_index, old_index):
         width = self.stacked_widget.width()
-        
+
         # New widget to slide in
         new_widget = self.stacked_widget.widget(new_index)
         new_widget.setGeometry(0, 0, width, self.stacked_widget.height())
@@ -1044,6 +1046,26 @@ class MainWindow(QMainWindow):
         if success and "Game closed" in message:
             self.launch_page.progress_bar.setValue(0)
             self.launch_page.status_label.setText("✓ Ready to launch")
+
+    def clear_cache(self):
+        try:
+            if os.path.exists(ICON_CACHE_DIR):
+                shutil.rmtree(ICON_CACHE_DIR)
+                QMessageBox.information(self, "Cache Cleared", "The icon cache has been cleared.")
+            else:
+                QMessageBox.information(self, "Cache Cleared", "No icon cache to clear.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Could not clear cache: {e}")
+
+    def clear_cache(self):
+        try:
+            if os.path.exists(ICON_CACHE_DIR):
+                shutil.rmtree(ICON_CACHE_DIR)
+                QMessageBox.information(self, "Cache Cleared", "The icon cache has been cleared.")
+            else:
+                QMessageBox.information(self, "Cache Cleared", "No icon cache to clear.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Could not clear cache: {e}")
 
     def closeEvent(self, a0: QCloseEvent | None):
         if self.bg_timer:

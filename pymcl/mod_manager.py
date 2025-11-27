@@ -1,5 +1,6 @@
 import glob
 import os
+import shutil
 
 from PyQt6.QtCore import QThread, pyqtSlot, Qt, QUrl
 from PyQt6.QtGui import QDesktopServices
@@ -16,7 +17,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from .constants import MODS_DIR
+from .constants import MODS_DIR, ICON_CACHE_DIR
 from .widgets import ModListWidget
 from .workers import ModDownloader
 
@@ -81,18 +82,34 @@ class ModsPage(QWidget):
 
         button_layout.addStretch(1)
 
+        clear_cache_button = QPushButton("Clear Icon Cache")
+        clear_cache_button.setObjectName("secondary_button")
+        clear_cache_button.clicked.connect(self.clear_cache)
+        button_layout.addWidget(clear_cache_button)
+
         refresh_button = QPushButton("Refresh")
         refresh_button.setObjectName("secondary_button")
         refresh_button.clicked.connect(self.populate_mods_list)
         button_layout.addWidget(refresh_button)
 
         layout.addLayout(button_layout)
-        
+
         scroll_area.setWidget(container)
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0,0,0,0)
         main_layout.addWidget(scroll_area)
+
+    @pyqtSlot()
+    def clear_cache(self):
+        try:
+            if os.path.exists(ICON_CACHE_DIR):
+                shutil.rmtree(ICON_CACHE_DIR)
+                self.download_status_label.setText("Icon cache cleared.")
+            else:
+                self.download_status_label.setText("No icon cache to clear.")
+        except Exception as e:
+            self.download_status_label.setText(f"Error clearing cache: {e}")
 
     @pyqtSlot()
     def populate_mods_list(self):
