@@ -1,4 +1,4 @@
 .DS_Store
 */__pycache__
 /pymcl/logger/
-**/config/*.json
+pymcl/config/settings.json
