@@ -539,6 +539,7 @@ class MainWindow(QMainWindow):
         self.bg_timer = None
         self.minecraft_info: MicrosoftInfo | None = None
         self.current_background_style = ""
+        self.last_version = None
 
         self.image_files = []
         self.current_image_index = 0
@@ -552,12 +553,12 @@ class MainWindow(QMainWindow):
         self.microsoft_auth.login_failed.connect(self.update_status)
 
         self.init_ui()
+        self.load_settings()
         self.apply_styles()
         self.add_shadow_effects()
         self.populate_versions()
         self.init_background_images()
         self.load_microsoft_info()
-        self.load_settings()
 
         setup_actions_and_menus(self)
 
@@ -579,6 +580,7 @@ class MainWindow(QMainWindow):
             with open("pymcl/config/settings.json", "r") as f:
                 settings = json.load(f)
                 last_username = settings.get("last_username", "")
+                self.last_version = settings.get("last_version", "")
                 if last_username:
                     self.launch_page.username_input.setText(last_username)
         except (json.JSONDecodeError, KeyError) as e:
@@ -856,6 +858,12 @@ class MainWindow(QMainWindow):
         if cached_versions:
             self.launch_page.version_combo.clear()
             self.launch_page.version_combo.addItems(cached_versions)
+            
+            if self.last_version and self.last_version in cached_versions:
+                index = self.launch_page.version_combo.findText(self.last_version)
+                if index != -1:
+                    self.launch_page.version_combo.setCurrentIndex(index)
+            
             self.launch_page.version_combo.setPlaceholderText("Select a version")
             self.launch_page.status_label.setText("Ready (versions fetched from cache)")
             self.launch_page.version_combo.setEnabled(True)
@@ -892,9 +900,15 @@ class MainWindow(QMainWindow):
                 self.launch_page.version_combo.clear()
                 self.launch_page.version_combo.addItems(versions)
 
-                index = self.launch_page.version_combo.findText(current_selection)
-                if index != -1:
-                    self.launch_page.version_combo.setCurrentIndex(index)
+                # Restore previous selection or load last played version
+                if current_selection and current_selection in versions:
+                     index = self.launch_page.version_combo.findText(current_selection)
+                     if index != -1:
+                         self.launch_page.version_combo.setCurrentIndex(index)
+                elif self.last_version and self.last_version in versions:
+                     index = self.launch_page.version_combo.findText(self.last_version)
+                     if index != -1:
+                         self.launch_page.version_combo.setCurrentIndex(index)
 
                 self.launch_page.status_label.setText("Versions updated")
             else:
@@ -940,6 +954,7 @@ class MainWindow(QMainWindow):
             with open("pymcl/config/settings.json", "r+") as f:
                 settings = json.load(f)
                 settings["last_username"] = self.launch_page.username_input.text().strip()
+                settings["last_version"] = self.launch_page.version_combo.currentText()
                 f.seek(0)
                 json.dump(settings, f, indent=4)
                 f.truncate()
@@ -947,7 +962,10 @@ class MainWindow(QMainWindow):
             # Config file or directory might not exist yet, create it
             os.makedirs("pymcl/config", exist_ok=True)
             with open("pymcl/config/settings.json", "w") as f:
-                settings = {"last_username": self.launch_page.username_input.text().strip()}
+                settings = {
+                    "last_username": self.launch_page.username_input.text().strip(),
+                    "last_version": self.launch_page.version_combo.currentText()
+                }
                 json.dump(settings, f, indent=4)
     @pyqtSlot()
     def start_launch(self):
@@ -997,6 +1015,7 @@ class MainWindow(QMainWindow):
             options["username"] = self.minecraft_info["username"]
             options["uuid"] = self.minecraft_info["uuid"]
             options["token"] = self.minecraft_info["access_token"]
+            self.save_settings()
 
         self.launch_page.launch_button.setEnabled(False)
         self.launch_page.launch_button.setText("⏳ LAUNCHING...")
