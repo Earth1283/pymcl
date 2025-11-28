@@ -2,9 +2,20 @@ import os
 import shutil
 import json
 
-from PyQt6.QtCore import pyqtSignal, QSize, Qt, QThread, pyqtSlot
-from PyQt6.QtGui import QPixmap
-from PyQt6.QtWidgets import QListWidget, QWidget, QVBoxLayout, QLabel, QPushButton, QProgressBar, QDialog, QTextEdit, QTextBrowser
+from PyQt6.QtCore import pyqtSignal, QSize, Qt, QThread, pyqtSlot, QPropertyAnimation, QEasingCurve, QPointF, QEvent
+from PyQt6.QtGui import QPixmap, QColor
+from PyQt6.QtWidgets import (
+    QListWidget,
+    QWidget,
+    QVBoxLayout,
+    QLabel,
+    QPushButton,
+    QProgressBar,
+    QDialog,
+    QTextEdit,
+    QTextBrowser,
+    QGraphicsDropShadowEffect,
+)
 
 import markdown
 
@@ -115,6 +126,7 @@ class ModListItem(QWidget):
         self.downloader = None
 
         self.init_ui()
+        self.setup_animations()
 
     def init_ui(self):
         self.setObjectName("mod_card")
@@ -146,6 +158,41 @@ class ModListItem(QWidget):
         self.progress_bar.setRange(0,0)
         layout.addWidget(self.progress_bar)
 
+    def setup_animations(self):
+        self.shadow = QGraphicsDropShadowEffect(self)
+        self.shadow.setBlurRadius(10)
+        self.shadow.setColor(QColor(0, 0, 0, 80))
+        self.shadow.setOffset(0, 2)
+        self.setGraphicsEffect(self.shadow)
+
+        self.anim_blur = QPropertyAnimation(self.shadow, b"blurRadius")
+        self.anim_blur.setDuration(200)
+        self.anim_blur.setEasingCurve(QEasingCurve.Type.OutQuad)
+
+        self.anim_offset = QPropertyAnimation(self.shadow, b"offset")
+        self.anim_offset.setDuration(200)
+        self.anim_offset.setEasingCurve(QEasingCurve.Type.OutQuad)
+
+    def enterEvent(self, event):
+        self.anim_blur.stop()
+        self.anim_blur.setEndValue(25)
+        self.anim_blur.start()
+
+        self.anim_offset.stop()
+        self.anim_offset.setEndValue(QPointF(0, 8))
+        self.anim_offset.start()
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        self.anim_blur.stop()
+        self.anim_blur.setEndValue(10)
+        self.anim_blur.start()
+
+        self.anim_offset.stop()
+        self.anim_offset.setEndValue(QPointF(0, 2))
+        self.anim_offset.start()
+        super().leaveEvent(event)
+
     def set_icon(self, icon_path):
         if icon_path:
             self.icon_path = icon_path
@@ -156,6 +203,7 @@ class ModListItem(QWidget):
         if not self.download_button.underMouse():
             self.card_clicked.emit(self.mod_data)
         super().mousePressEvent(event)
+
 
     @pyqtSlot()
     def start_download(self):

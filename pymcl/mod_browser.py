@@ -1,4 +1,4 @@
-from PyQt6.QtCore import Qt, pyqtSlot, QThread, QSize
+from PyQt6.QtCore import Qt, pyqtSlot, QThread, QSize, QTimer
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -8,11 +8,12 @@ from PyQt6.QtWidgets import (
     QGridLayout,
     QLabel,
     QScrollArea,
+    QSpinBox,
 )
 import requests
 import json
 
-from .workers import ModDownloader, IconDownloader
+from .workers import ModDownloader, IconDownloader, ModSearchWorker
 from .widgets import ModListItem, ModDetailDialog
 from .modrinth_client import ModrinthClient
 
@@ -24,6 +25,12 @@ class ModBrowserPage(QWidget):
         self.game_version = None
         self.loader = None
         self.threads = []
+        self.current_search_id = 0
+
+        self.search_timer = QTimer(self)
+        self.search_timer.setSingleShot(True)
+        self.search_timer.setInterval(175)
+        self.search_timer.timeout.connect(self.start_search)
 
         self.init_ui()
 
@@ -53,7 +60,16 @@ class ModBrowserPage(QWidget):
         self.search_input.setPlaceholderText("Search for mods on Modrinth...")
         self.search_input.setMinimumHeight(45)
         self.search_input.returnPressed.connect(self.start_search)
+        self.search_input.textChanged.connect(self.on_search_text_changed)
         search_bar_layout.addWidget(self.search_input)
+
+        self.limit_spinbox = QSpinBox()
+        self.limit_spinbox.setRange(1, 100)
+        self.limit_spinbox.setValue(20)
+        self.limit_spinbox.setPrefix("Limit: ")
+        self.limit_spinbox.setMinimumHeight(45)
+        self.limit_spinbox.setFixedWidth(100)
+        search_bar_layout.addWidget(self.limit_spinbox)
 
         self.search_button = QPushButton("Search")
         self.search_button.setObjectName("secondary_button")
@@ -85,18 +101,59 @@ class ModBrowserPage(QWidget):
         query = self.search_input.text().strip()
         if not query:
             return
-
+        
+        # If a thread is already running, we don't want to spam/lag by launching another one immediately
+        # if we were strict. But the best UX is to cancel the old one (not possible easily) 
+        # or just launch this one and ignore the old result.
+        # Since 'requests' is blocking, the old thread will just finish eventually.
+        # To prevent "lag", we just ensure we are on a thread.
+        
         self.search_button.setText("Searching...")
         self.search_button.setEnabled(False)
 
+        self.current_search_id += 1
         game_versions = [self.game_version] if self.game_version else None
+        limit = self.limit_spinbox.value()
 
-        # In a real app, this should be in a QThread
-        self.search_results = self.modrinth_client.search(query, game_versions=game_versions, loader=self.loader)
+        thread = QThread()
+        worker = ModSearchWorker(
+            self.modrinth_client, 
+            query, 
+            game_versions, 
+            self.loader, 
+            limit,
+            self.current_search_id
+        )
+        worker.moveToThread(thread)
+        
+        # Keep worker alive
+        thread.worker = worker
+        
+        thread.started.connect(worker.run)
+        worker.finished.connect(self.on_search_finished)
+        worker.finished.connect(thread.quit)
+        worker.finished.connect(worker.deleteLater)
+        thread.finished.connect(thread.deleteLater)
+        thread.finished.connect(lambda: self.threads.remove(thread) if thread in self.threads else None)
+        
+        self.threads.append(thread)
+        thread.start()
+
+    @pyqtSlot(list, int)
+    def on_search_finished(self, results, search_id):
+        if search_id != self.current_search_id:
+            return
+        
+        self.search_results = results
         self.populate_results()
-
         self.search_button.setText("Search")
         self.search_button.setEnabled(True)
+
+    @pyqtSlot(str)
+    def on_search_text_changed(self, text):
+        if self.search_timer.isActive():
+            self.search_timer.stop()
+        self.search_timer.start()
 
     def populate_results(self):
         # Clear existing results

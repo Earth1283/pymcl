@@ -10,8 +10,8 @@ class ModrinthClient:
             {"User-Agent": "PyMCL/1.0 (github.com/sonnynomnom/PyMCL)"}
         )
 
-    def search(self, query, game_versions=None, loader=None):
-        params = {"query": query, "limit": 20}
+    def search(self, query, game_versions=None, loader=None, limit=20):
+        params = {"query": query, "limit": limit}
         facets = []
         if game_versions:
             facets.append([f"versions:{v}" for v in game_versions])

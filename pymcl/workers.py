@@ -232,3 +232,30 @@ class Worker(QObject):
             print(error_msg)
             self.status.emit(error_msg)
             self.finished.emit(False, error_msg)
+
+
+class ModSearchWorker(QObject):
+    finished = pyqtSignal(list, int)
+
+    def __init__(self, modrinth_client, query, game_versions, loader, limit, search_id):
+        super().__init__()
+        self.modrinth_client = modrinth_client
+        self.query = query
+        self.game_versions = game_versions
+        self.loader = loader
+        self.limit = limit
+        self.search_id = search_id
+
+    @pyqtSlot()
+    def run(self):
+        try:
+            results = self.modrinth_client.search(
+                self.query,
+                game_versions=self.game_versions,
+                loader=self.loader,
+                limit=self.limit
+            )
+            self.finished.emit(results, self.search_id)
+        except Exception as e:
+            print(f"Search error: {e}")
+            self.finished.emit([], self.search_id)
