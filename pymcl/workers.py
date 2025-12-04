@@ -4,8 +4,11 @@ import uuid
 import json
 from typing import cast
 import datetime
+import glob
+import hashlib
 
 import minecraft_launcher_lib
+import minecraft_launcher_lib.fabric
 import requests
 from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
 
@@ -158,11 +161,11 @@ class Worker(QObject):
     status = pyqtSignal(str)
     finished = pyqtSignal(bool, str)
 
-    def __init__(self, version, options, use_fabric):
+    def __init__(self, version, options, mod_loader_type):
         super().__init__()
         self.version = version
         self.options = options
-        self.use_fabric = use_fabric
+        self.mod_loader_type = mod_loader_type
 
     @pyqtSlot()
     def run(self):
@@ -182,27 +185,26 @@ class Worker(QObject):
                 callback={"setStatus": set_status, "setProgress": set_progress},
             )
 
-            if self.use_fabric:
-                set_status("Installing Fabric...")
+            if self.mod_loader_type != "Vanilla":
+                set_status(f"Installing {self.mod_loader_type}...")
                 try:
-                    loader_version = (
-                        minecraft_launcher_lib.fabric.get_latest_loader_version()
-                    )
-                    set_status(f"Found Fabric Loader {loader_version}")
+                    if self.mod_loader_type == "Fabric":
+                        loader_version = minecraft_launcher_lib.fabric.get_latest_loader_version()
+                        set_status(f"Found Fabric Loader {loader_version}")
+                        minecraft_launcher_lib.fabric.install_fabric(
+                            minecraft_version=self.version,
+                            minecraft_directory=MINECRAFT_DIR,
+                            loader_version=loader_version,
+                            callback={"setStatus": set_status, "setProgress": set_progress},
+                        )
+                        self.version_to_launch = f"fabric-loader-{loader_version}-{self.version}"
+                    elif self.mod_loader_type in ["Forge", "NeoForge", "Quilt"]:
+                        raise Exception(f"{self.mod_loader_type} installation is not supported in this version of PyMCL due to library limitations. Please update your libraries or use Fabric.")
 
-                    minecraft_launcher_lib.fabric.install_fabric(
-                        minecraft_version=self.version,
-                        minecraft_directory=MINECRAFT_DIR,
-                        loader_version=loader_version,
-                        callback={"setStatus": set_status, "setProgress": set_progress},
-                    )
-                    self.version_to_launch = (
-                        f"fabric-loader-{loader_version}-{self.version}"
-                    )
-                except Exception as fabric_e:
-                    print(f"Fabric install failed: {fabric_e}")
-                    self.status.emit(f"Fabric install failed: {fabric_e}")
-                    self.finished.emit(False, f"Fabric install failed: {fabric_e}")
+                except Exception as loader_e:
+                    print(f"{self.mod_loader_type} install failed: {loader_e}")
+                    self.status.emit(f"{self.mod_loader_type} install failed: {loader_e}")
+                    self.finished.emit(False, f"{self.mod_loader_type} install failed: {loader_e}")
                     return
 
             set_progress(1, 1)
@@ -259,3 +261,55 @@ class ModSearchWorker(QObject):
         except Exception as e:
             print(f"Search error: {e}")
             self.finished.emit([], self.search_id)
+
+class UpdateCheckerWorker(QObject):
+    finished = pyqtSignal(dict) # {file_path: new_version_obj}
+
+    def __init__(self, modrinth_client):
+        super().__init__()
+        self.client = modrinth_client
+
+    @pyqtSlot()
+    def run(self):
+        print("UpdateCheckerWorker: Starting update check.")
+        jar_files = glob.glob(os.path.join(MODS_DIR, "*.jar"))
+        hashes = {} # {sha1: file_path}
+        
+        print(f"UpdateCheckerWorker: Found {len(jar_files)} jar files.")
+        for path in jar_files:
+            try:
+                sha1 = self._calculate_sha1(path)
+                hashes[sha1] = path
+                print(f"UpdateCheckerWorker: Hashed {os.path.basename(path)}: {sha1}")
+            except Exception as e:
+                print(f"UpdateCheckerWorker: Error hashing {path}: {e}")
+        
+        if not hashes:
+            print("UpdateCheckerWorker: No mods to check for updates.")
+            self.finished.emit({})
+            return
+
+        print(f"UpdateCheckerWorker: Sending {len(hashes)} hashes to Modrinth for update check.")
+        # Modrinth API allows bulk check
+        updates = self.client.get_updates(list(hashes.keys()))
+        print(f"UpdateCheckerWorker: Received update response from Modrinth. Found {len(updates)} updates.")
+        
+        # Map back to file paths: {file_path: new_version_data}
+        result = {}
+        for h, version in updates.items():
+             if h in hashes:
+                 result[hashes[h]] = version
+                 print(f"UpdateCheckerWorker: Update available for {os.path.basename(hashes[h])}")
+        
+        print(f"UpdateCheckerWorker: Update check finished. Total updates found: {len(result)}")
+        self.finished.emit(result)
+
+    def _calculate_sha1(self, file_path):
+        sha1 = hashlib.sha1()
+        with open(file_path, 'rb') as f:
+            while True:
+                data = f.read(65536)
+                if not data:
+                    break
+                sha1.update(data)
+        return sha1.hexdigest()

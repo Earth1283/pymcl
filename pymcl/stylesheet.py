@@ -174,10 +174,10 @@ QCheckBox {
     background: transparent;
 }
 QCheckBox::indicator {
-    width: 44px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     border: 2px solid #505050;
-    border-radius: 12px;
+    border-radius: 4px;
     background-color: #1e1e1e;
 }
 QCheckBox::indicator:hover {
@@ -186,17 +186,7 @@ QCheckBox::indicator:hover {
 QCheckBox::indicator:checked {
     background-color: #4a9eff;
     border-color: #4a9eff;
-}
-QCheckBox::indicator::handle {
-    width: 18px;
-    height: 18px;
-    background-color: #f0f0f0;
-    border-radius: 9px;
-    margin: 3px;
-}
-QCheckBox::indicator:checked::handle {
-    background-color: #ffffff;
-    margin-left: 23px;
+    image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='18px' height='18px'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
 }
 
 QListWidget {

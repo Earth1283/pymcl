@@ -23,7 +23,7 @@ class ModrinthClient:
             params["facets"] = json.dumps(facets)
 
         try:
-            response = self.session.get(f"{self.BASE_URL}/search", params=params)
+            response = self.session.get(f"{self.BASE_URL}/search", params=params, timeout=15)
             response.raise_for_status()
             return response.json().get("hits", [])
         except requests.RequestException as e:
@@ -32,11 +32,26 @@ class ModrinthClient:
 
     def get_project(self, slug):
         try:
-            response = self.session.get(f"{self.BASE_URL}/project/{slug}")
+            response = self.session.get(f"{self.BASE_URL}/project/{slug}", timeout=15)
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
             print(f"Error getting project from Modrinth: {e}")
+            return {}
+
+    def get_updates(self, file_hashes):
+        print(f"ModrinthClient: Attempting to get updates for {len(file_hashes)} hashes.")
+        try:
+            response = self.session.post(
+                f"{self.BASE_URL}/version_files/update",
+                json={"hashes": file_hashes, "algorithm": "sha1"},
+                timeout=15
+            )
+            response.raise_for_status()
+            print("ModrinthClient: Successfully received update response.")
+            return response.json()
+        except requests.RequestException as e:
+            print(f"ModrinthClient: Error getting updates: {e}")
             return {}
 
     def get_versions(self, mod_id, game_versions=None, loader=None):
@@ -47,7 +62,7 @@ class ModrinthClient:
             params["loaders"] = json.dumps([loader])
 
         try:
-            response = self.session.get(f"{self.BASE_URL}/project/{mod_id}/version", params=params)
+            response = self.session.get(f"{self.BASE_URL}/project/{mod_id}/version", params=params, timeout=15)
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:

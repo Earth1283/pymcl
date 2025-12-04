@@ -1,6 +1,7 @@
 requests
 minecraft_launcher_lib
-PyQT6
+PyQt6
 rich
 beautifulsoup4
 lxml
+Markdown

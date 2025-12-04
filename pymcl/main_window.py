@@ -102,8 +102,14 @@ class LaunchPage(QWidget):
         mod_layout = QHBoxLayout()
         mod_layout.setSpacing(15)
 
-        self.fabric_toggle = QCheckBox("Use Fabric")
-        mod_layout.addWidget(self.fabric_toggle, 0, Qt.AlignmentFlag.AlignVCenter)
+        mod_loader_label = QLabel("MOD LOADER")
+        mod_loader_label.setObjectName("section_label")
+        mod_layout.addWidget(mod_loader_label, 0, Qt.AlignmentFlag.AlignVCenter)
+
+        self.mod_loader_combo = QComboBox()
+        self.mod_loader_combo.addItems(["Vanilla", "Fabric", "Forge", "NeoForge", "Quilt"])
+        self.mod_loader_combo.setMinimumHeight(55)
+        mod_layout.addWidget(self.mod_loader_combo)
 
         mod_layout.addStretch(1)
 
@@ -500,9 +506,13 @@ class MainWindow(QMainWindow):
         # Pass launch options to mod browser
         if self.stacked_widget.widget(index) == self.mod_browser_page:
             version = self.launch_page.version_combo.currentText()
-            use_fabric = self.launch_page.fabric_toggle.isChecked()
-            loader = "fabric" if use_fabric else None
-            self.mod_browser_page.set_launch_filters(version, loader)
+            mod_loader = self.launch_page.mod_loader_combo.currentText()
+            loader_param = None
+            if mod_loader == "Fabric":
+                loader_param = "fabric"
+            # Add conditions for other loaders if Modrinth API supports them
+            # For now, only Fabric is directly mapped
+            self.mod_browser_page.set_launch_filters(version, loader_param)
 
         # Update nav button styles
         for btn in [self.nav_launch_button, self.nav_mods_button, self.nav_browse_mods_button, self.nav_settings_button]:
@@ -787,7 +797,7 @@ class MainWindow(QMainWindow):
     def start_launch(self):
         auth_method = self.launch_page.auth_method_combo.currentText()
         version = self.launch_page.version_combo.currentText()
-        use_fabric = self.launch_page.fabric_toggle.isChecked()
+        mod_loader_type = self.launch_page.mod_loader_combo.currentText()
 
         if not version or version == "Loading versions...":
             self.update_status("⚠️ Please select a version")
@@ -840,7 +850,7 @@ class MainWindow(QMainWindow):
         self.launch_page.progress_bar.setValue(0)
 
         self.worker_thread = QThread()
-        self.worker = Worker(version, options, use_fabric)
+        self.worker = Worker(version, options, mod_loader_type)
         self.worker.moveToThread(self.worker_thread)
 
         self.worker_thread.started.connect(self.worker.run)

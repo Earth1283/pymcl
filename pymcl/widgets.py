@@ -1,6 +1,7 @@
 import os
 import shutil
 import json
+import zipfile
 
 from PyQt6.QtCore import pyqtSignal, QSize, Qt, QThread, pyqtSlot, QPropertyAnimation, QEasingCurve, QPointF, QEvent
 from PyQt6.QtGui import QPixmap, QColor
@@ -15,6 +16,7 @@ from PyQt6.QtWidgets import (
     QTextEdit,
     QTextBrowser,
     QGraphicsDropShadowEffect,
+    QHBoxLayout,
 )
 
 import markdown
@@ -294,3 +296,43 @@ class ModListWidget(QListWidget):
 
         if copied_count > 0:
             self.mods_changed.emit()
+
+class InstalledModItem(QWidget):
+    update_clicked = pyqtSignal(str, dict) # mod_path, new_version_data
+
+    def __init__(self, mod_path, parent=None):
+        super().__init__(parent)
+        self.mod_path = mod_path
+        self.new_version_data = None
+        self.init_ui()
+
+    def init_ui(self):
+        # Make the widget background transparent so the list item selection shows through
+        self.setStyleSheet("background: transparent; min-height: 40px;")
+        
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(5, 5, 5, 5)
+        layout.setSpacing(10)
+
+        filename = os.path.basename(self.mod_path)
+        self.name_label = QLabel(filename)
+        # Ensure label text is visible against the list item background
+        self.name_label.setStyleSheet("color: #f0f0f0; background: transparent; border: none; font-size: 16px; vertical-align: middle;") 
+        layout.addWidget(self.name_label)
+
+        layout.addStretch(1)
+
+        self.update_button = QPushButton("UPDATE")
+        self.update_button.setObjectName("download_badge") # Reusing the style
+        self.update_button.setVisible(False)
+        self.update_button.clicked.connect(self.on_update_clicked)
+        layout.addWidget(self.update_button)
+
+    def show_update(self, new_version_data):
+        self.new_version_data = new_version_data
+        self.update_button.setVisible(True)
+        self.update_button.setText("UPDATE AVAILABLE")
+
+    def on_update_clicked(self):
+        if self.new_version_data:
+            self.update_clicked.emit(self.mod_path, self.new_version_data)
